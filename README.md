@@ -1,1 +1,1 @@
-# biomine-app
+# sentinel-network

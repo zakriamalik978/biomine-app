@@ -4,53 +4,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sentinel Network - Mining Logic v7</title>
+<title>Sentinel Network Miner</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://app.adsgram.ai/js/adsgram-ad-sdk.js"></script>
 <style>
 :root { --primary: #00d2ff; --bg: #0b0f1a; --card: #161b2c; --safe: #00ff88; }
-body { background-color: var(--bg); color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+body { background-color: var(--bg); color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; overflow-x: hidden; padding-bottom: 80px; }
+.logo { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary); margin-top: 20px; margin-bottom: 10px; object-fit: cover; }
 .card { background: var(--card); border: 1px solid #2d334a; border-radius: 20px; padding: 20px; margin-bottom: 20px; }
 .balance { font-size: 42px; font-weight: bold; color: var(--primary); }
-.btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: bold; color: white; background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); cursor: pointer; }
-.btn:disabled { opacity: 0.5; background: #2d334a; }
-.badge { font-size: 11px; padding: 5px 10px; border-radius: 8px; background: rgba(0,210,255,0.1); color: var(--primary); margin-top: 5px; display: inline-block; }
-.nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #111625; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2d334a; }
-.nav-item { color: #8e94a8; cursor: pointer; font-size: 12px; }
-.nav-item.active { color: var(--primary); font-weight: bold; }
+.timer { font-size: 28px; color: #ffab00; margin: 15px 0; font-family: monospace; }
+.btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: bold; color: white; background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); cursor: pointer; font-size: 18px; transition: 0.3s; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; background: #2d334a; color: #8e94a8; }
+.info { font-size: 12px; color: #8e94a8; margin-top: 10px; }
+.badge { font-size: 12px; padding: 5px 10px; border-radius: 8px; background: rgba(0,210,255,0.1); color: var(--primary); margin-top: 5px; display: inline-block; }
+
+/* Navigation */
+.nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #111625; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2d334a; z-index: 100; }
+.nav-item { color: #8e94a8; cursor: pointer; font-size: 12px; font-weight: bold; }
+.nav-item.active { color: var(--primary); }
 .page { display: none; }
 .page.active { display: block; }
-input { width: 80%; padding: 10px; border-radius: 10px; border: 1px solid #333; background: #000; color: white; text-align: center; margin: 10px 0; }
+
+/* Welcome Screen Overlay */
+#welcome-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg); z-index: 1000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
 </style>
 </head>
 <body>
 
+<div id="welcome-overlay">
+    <img src="https://raw.githubusercontent.com/zakriamalik978/sentinel-network/main/logo.png" style="width:150px; height:150px; border-radius:50%; border:4px solid var(--primary); margin-bottom:20px;">
+    <h1 style="color:var(--primary); margin-bottom:5px;">SENTINEL</h1>
+    <p style="color:#8e94a8; margin-bottom:30px;">Decentralized Mining Network</p>
+    <button class="btn" onclick="startAppWithAd()" style="width:80%;">ENTER MINER</button>
+</div>
+
 <div id="page-mining" class="page active">
-    <h2>SENTINEL NODE</h2>
+    <img src="logo.png" class="logo" onerror="this.src='https://raw.githubusercontent.com/zakriamalik978/sentinel-network/main/logo.png'">
+    <h2>SENTINEL NETWORK</h2>
+
     <div class="card">
-        <div>TOTAL $SEN</div>
+        <div>TOTAL $SEN BALANCE</div>
         <div class="balance" id="balance">0</div>
-        <div id="rate-display" class="badge">Rate: 10 $SEN / Cycle</div>
+        <div id="rate-badge" class="badge">Mining Rate: 10/cycle</div>
     </div>
+
     <div class="card">
-        <div id="timer" style="font-size: 24px; color: #ffab00; font-family: monospace; margin-bottom: 10px;">04:00:00</div>
-        <button class="btn" id="claim-btn" onclick="handleMining()">MINE NOW</button>
+        <div id="status">Market Cycle Mining</div>
+        <div class="timer" id="timer">--:--:--</div>
+        <button class="btn" id="claim-btn" onclick="handleMining()" disabled>LOADING...</button>
+        <div class="info">Next cycle starts every 4 hours (UTC)</div>
     </div>
 </div>
 
 <div id="page-profile" class="page">
-    <h2>VERIFICATION & TEAM</h2>
-    
-    <div class="card" id="verification-card">
-        <h4>Identity Status</h4>
-        <p id="status-text" style="color:#ffab00">NOT VERIFIED</p>
+    <h2>USER PROFILE</h2>
+    <div class="card">
+        <h4>Identity Verification</h4>
+        <p id="verify-status" style="color:#ffab00">STATUS: UNVERIFIED</p>
         <button id="biometric-btn" class="btn" onclick="verifyFingerprint()">VERIFY FINGERPRINT</button>
     </div>
 
     <div class="card">
-        <h4>Referral Link</h4>
-        <p style="font-size: 12px; color: #8e94a8;">Verified Team: <span id="team-count" style="color:var(--primary)">0</span></p>
-        <input type="text" id="ref-link" readonly>
-        <button class="btn" onclick="copyRef()">COPY LINK</button>
+        <h4>Referral Program</h4>
+        <p style="font-size: 12px; color:#8e94a8;">Verified Friends: <b id="team-count">0</b></p>
+        <p style="font-size: 11px; color:#8e94a8; margin-bottom: 10px;">Share link to earn +2 $SEN boost per friend!</p>
+        <input type="text" id="ref-link" readonly style="width:90%; padding:10px; background:#0b0f1a; border:1px solid #2d334a; color:var(--primary); text-align:center; border-radius:10px;">
+        <button class="btn" onclick="copyRef()" style="margin-top:10px;">COPY LINK</button>
     </div>
 </div>
 
@@ -60,30 +84,46 @@ input { width: 80%; padding: 10px; border-radius: 10px; border: 1px solid #333; 
 </div>
 
 <script>
-// --- CORE DATA CONFIGURATION ---
-const STORAGE_KEY = 'sentinel_v7_data';
-const tg = window.Telegram.WebApp;
-tg.expand();
+const BLOCK_ID = "22611";
 
-// Initialize User Data
-let userData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-    balance: 0,
+// NEW: Integrated Data Object to prevent reset issues
+let userData = JSON.parse(localStorage.getItem('sen_user_data')) || {
+    totalBalance: parseFloat(localStorage.getItem('sen_total_bal')) || 0,
+    lastClaimTime: parseInt(localStorage.getItem('sen_last_claim')) || 0,
     isVerified: false,
-    hasUsedReferral: false, // Did this user join via someone's link?
-    verifiedReferrals: 0,   // How many people did THIS user invite who verified?
-    lastClaim: 0,
-    id: "sn" + Math.floor(Math.random() * 999999)
+    verifiedReferrals: 0,
+    hasJoinedViaReferral: false,
+    id: "sn" + Math.floor(Math.random() * 1000000)
 };
 
-// Check if user opened via a referral link (Telegram start_param)
-const startParam = tg.initDataUnsafe.start_param;
-if (startParam && !userData.hasUsedReferral) {
-    userData.hasUsedReferral = true;
-    save();
+// Check for Telegram Referral Parameter
+if (window.Telegram && window.Telegram.WebApp) {
+    const startParam = window.Telegram.WebApp.initDataUnsafe.start_param;
+    if (startParam && !userData.hasJoinedViaReferral) {
+        userData.hasJoinedViaReferral = true;
+        saveData();
+    }
 }
 
-function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+function saveData() {
+    localStorage.setItem('sen_user_data', JSON.stringify(userData));
+    localStorage.setItem('sen_total_bal', userData.totalBalance);
+    localStorage.setItem('sen_last_claim', userData.lastClaimTime);
+}
+
+const balEl = document.getElementById('balance');
+const timeEl = document.getElementById('timer');
+const btnEl = document.getElementById('claim-btn');
+const statusEl = document.getElementById('status');
+
+const AdController = window.Adsgram ? window.Adsgram.init({ blockId: BLOCK_ID }) : null;
+
+async function startAppWithAd() {
+    const overlay = document.getElementById('welcome-overlay');
+    if (AdController) {
+        try { await AdController.show(); } catch (err) { console.log("Intro ad skip/fail"); }
+    }
+    overlay.style.display = 'none';
 }
 
 function showPage(p) {
@@ -94,75 +134,116 @@ function showPage(p) {
     updateUI();
 }
 
+function getNextCycleTime() {
+    const now = new Date();
+    const hours = now.getUTCHours();
+    const nextCycleHour = Math.floor(hours / 4) * 4 + 4;
+    const nextCycle = new Date(now);
+    nextCycle.setUTCHours(nextCycleHour, 0, 0, 0);
+    return nextCycle.getTime();
+}
+
+function getCurrentCycleStartTime() {
+    const now = new Date();
+    const hours = now.getUTCHours();
+    const currentCycleHour = Math.floor(hours / 4) * 4;
+    const currentCycle = new Date(now);
+    currentCycle.setUTCHours(currentCycleHour, 0, 0, 0);
+    return currentCycle.getTime();
+}
+
 function updateUI() {
-    // 1. Calculate Mining Rate
-    // Base: 10
-    // If joined via referral & verified: 15
-    // Plus 2 for every verified teammate
+    // Calculate Current Rate
     let baseRate = 10;
-    if (userData.hasUsedReferral && userData.isVerified) baseRate = 15;
+    if (userData.hasJoinedViaReferral && userData.isVerified) baseRate = 15;
+    let boost = userData.verifiedReferrals * 2;
+    let totalRate = baseRate + boost;
+
+    // Update Mining UI
+    balEl.innerText = userData.totalBalance.toFixed(0);
+    document.getElementById('rate-badge').innerText = `Mining Rate: ${totalRate}/cycle`;
     
-    let bonusFromTeam = userData.verifiedReferrals * 2;
-    let totalRate = baseRate + bonusFromTeam;
+    const now = new Date().getTime();
+    const nextCycle = getNextCycleTime();
+    const currentCycleStart = getCurrentCycleStartTime();
+    const diff = nextCycle - now;
 
-    // 2. Update Elements
-    document.getElementById('balance').innerText = Math.floor(userData.balance);
-    document.getElementById('rate-display').innerText = `Rate: ${totalRate} $SEN / Cycle`;
-    document.getElementById('team-count').innerText = userData.verifiedReferrals;
-    document.getElementById('ref-link').value = `https://t.me/YourBotName?start=${userData.id}`;
+    let h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    let m = Math.floor((diff / (1000 * 60)) % 60);
+    let s = Math.floor((diff / 1000) % 60);
+    timeEl.innerText = h.toString().padStart(2, '0') + ":" + m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
 
-    if (userData.isVerified) {
-        document.getElementById('status-text').innerText = "VERIFIED NODE";
-        document.getElementById('status-text').style.color = "var(--safe)";
-        document.getElementById('biometric-btn').style.display = "none";
+    if (userData.lastClaimTime >= currentCycleStart) {
+        btnEl.disabled = true;
+        btnEl.innerText = "ALREADY MINED";
+        statusEl.innerText = "Next Cycle In:";
+    } else {
+        btnEl.disabled = false;
+        btnEl.innerText = `MINE ${totalRate} $SEN`;
+        statusEl.innerText = "Market Cycle Ready!";
     }
 
-    // 3. Timer & Claim Button
-    const now = new Date();
-    const cycleStart = new Date(now).setUTCHours(Math.floor(now.getUTCHours() / 4) * 4, 0, 0, 0);
-    const btn = document.getElementById('claim-btn');
-    
-    if (userData.lastClaim >= cycleStart) {
-        btn.disabled = true;
-        btn.innerText = "ALREADY MINED";
-    } else {
-        btn.disabled = false;
-        btn.innerText = `MINE ${totalRate} $SEN`;
+    // Update Profile UI
+    document.getElementById('team-count').innerText = userData.verifiedReferrals;
+    document.getElementById('ref-link').value = `https://t.me/YourBotUsername?start=${userData.id}`;
+    if(userData.isVerified) {
+        document.getElementById('verify-status').innerText = "STATUS: VERIFIED NODE";
+        document.getElementById('verify-status').style.color = "var(--safe)";
+        document.getElementById('biometric-btn').style.display = "none";
     }
 }
 
-// --- ACTIONS ---
-function handleMining() {
+async function handleMining() {
+    btnEl.disabled = true;
+    btnEl.innerText = "LOADING AD...";
+    
+    if (AdController) {
+        try {
+            const res = await AdController.show();
+            if (res.done) { processReward(); } 
+            else {
+                btnEl.disabled = false;
+                updateUI();
+                alert("Please watch the full ad to claim.");
+            }
+        } catch (err) { processReward(); }
+    } else { processReward(); }
+}
+
+function processReward() {
     let baseRate = 10;
-    if (userData.hasUsedReferral && userData.isVerified) baseRate = 15;
+    if (userData.hasJoinedViaReferral && userData.isVerified) baseRate = 15;
     let totalRate = baseRate + (userData.verifiedReferrals * 2);
 
-    userData.balance += totalRate;
-    userData.lastClaim = new Date().getTime();
-    save();
+    userData.totalBalance += totalRate;
+    userData.lastClaimTime = new Date().getTime();
+    saveData();
     updateUI();
-    alert(`Success! ${totalRate} $SEN added to your vault.`);
+    alert(`Success! ${totalRate} $SEN added.`);
 }
 
 function verifyFingerprint() {
-    alert("Place finger on sensor...");
+    alert("Scanning Fingerprint...");
     setTimeout(() => {
         userData.isVerified = true;
-        save();
+        saveData();
         updateUI();
-        alert("Node Identity Verified!");
+        alert("Success! Node Verified. Your referral boost and joining bonus are now active.");
     }, 2000);
 }
 
 function copyRef() {
-    const link = document.getElementById("ref-link");
-    link.select();
+    const copyText = document.getElementById("ref-link");
+    copyText.select();
     document.execCommand("copy");
-    alert("Referral Link Copied!");
+    alert("Referral link copied!");
 }
 
-// Keep UI updated every second
 setInterval(updateUI, 1000);
+if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+}
 updateUI();
 </script>
 </body>

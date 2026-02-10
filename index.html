@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,22 +10,27 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
 :root { --primary: #00d2ff; --bg: #0b0f1a; --card: #161b2c; --safe: #00ff88; }
-body { background-color: var(--bg); color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+body { background-color: var(--bg); color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
 
 /* Profile Icon Styling */
-.profile-toggle { position: absolute; top: 20px; right: 20px; background: var(--card); border: 1px solid #2d334a; padding: 10px; border-radius: 50%; cursor: pointer; color: var(--primary); z-index: 1001; transition: 0.3s; }
-.profile-toggle:active { transform: scale(0.9); }
+.profile-toggle { position: absolute; top: 20px; right: 20px; background: var(--card); border: 1px solid #2d334a; padding: 10px; border-radius: 50%; cursor: pointer; color: var(--primary); z-index: 1001; }
 
-.logo { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--primary); margin: 0 auto 20px auto; object-fit: cover; }
-.balance { font-size: 56px; font-weight: bold; color: var(--primary); margin-bottom: 30px; }
-.btn { width: 90%; max-width: 400px; padding: 20px; border-radius: 18px; border: none; font-weight: bold; color: white; background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); cursor: pointer; font-size: 22px; transition: 0.3s; margin: 0 auto; display: block; font-family: monospace; }
-.btn:disabled { opacity: 0.8; cursor: not-allowed; background: #161b2c; border: 1px solid #2d334a; color: #ffab00; }
+.main-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.logo { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; }
+.brand-title { margin-top: 10px; font-weight: bold; letter-spacing: 2px; color: #8e94a8; font-size: 14px; }
+.balance { font-size: 64px; font-weight: bold; color: var(--primary); margin: 20px 0; }
+
+/* Bottom Timer/Button Box */
+.bottom-container { position: fixed; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: center; }
+.btn { width: 90%; max-width: 400px; padding: 22px; border-radius: 20px; border: none; font-weight: bold; color: white; background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); cursor: pointer; font-size: 18px; font-family: monospace; transition: 0.3s; }
+.btn:disabled { opacity: 1; background: #161b2c; border: 1px solid #2d334a; color: #ffab00; }
 
 /* Profile Overlay */
 .page-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; }
 .page-overlay.active { display: flex; }
-.card { background: var(--card); border: 1px solid #2d334a; border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: left; }
+.card { background: var(--card); border: 1px solid #2d334a; border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: left; position: relative; }
 .close-btn { align-self: flex-end; padding: 10px; color: #8e94a8; cursor: pointer; }
+.verified-icon { color: var(--safe); position: absolute; top: 20px; right: 20px; }
 
 #welcome-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 </style>
@@ -32,34 +38,42 @@ body { background-color: var(--bg); color: white; font-family: sans-serif; text-
 <body>
 
 <div id="welcome-overlay">
-    <img src="https://raw.githubusercontent.com/zakriamalik978/sentinel-network/main/logo.png" style="width:120px; height:120px; border-radius:50%; border:4px solid var(--primary); margin-bottom:20px;">
-    <h1 style="color:var(--primary); margin-bottom:0;">SENTINEL</h1>
-    <p style="color:#8e94a8; margin-top:5px; margin-bottom:40px;">Mining Node</p>
-    <button class="btn" onclick="startAppWithAd()">INITIALIZE</button>
+    <img src="https://raw.githubusercontent.com/zakriamalik978/sentinel-network/main/logo.png" style="width:120px; height:120px; border-radius:50%; border:4px solid var(--primary);">
+    <h1 style="color:var(--primary); margin-bottom:40px;">SENTINEL</h1>
+    <button class="btn" onclick="startAppWithAd()">INITIALIZE NODE</button>
 </div>
 
 <div class="profile-toggle" onclick="toggleProfile()">
     <i data-lucide="user"></i>
 </div>
 
-<div id="page-mining">
+<div class="main-content">
     <img src="https://raw.githubusercontent.com/zakriamalik978/sentinel-network/main/logo.png" class="logo">
+    <div class="brand-title">SENTINEL NETWORK</div>
     <div class="balance" id="balance">0</div>
+</div>
+
+<div class="bottom-container">
     <button class="btn" id="claim-btn" onclick="handleMining()" disabled>--:--:--</button>
 </div>
 
 <div id="profile-overlay" class="page-overlay">
     <div class="close-btn" onclick="toggleProfile()"><i data-lucide="x"></i></div>
-    <h2 style="text-align: center;">NODE SETTINGS</h2>
+    <h2 style="text-align: center; margin-bottom: 30px;">NODE DETAILS</h2>
+    
     <div class="card">
-        <div style="font-size: 12px; color: #8e94a8; margin-bottom: 5px;">VERIFICATION STATUS</div>
-        <div id="verify-status" style="color:#ffab00; font-weight: bold;">UNVERIFIED</div>
-        <button id="biometric-btn" class="btn" style="font-size: 14px; padding: 10px; margin-top: 10px;" onclick="verifyFingerprint()">VERIFY BIOMETRICS</button>
+        <div id="check-mark" class="verified-icon" style="display: none;"><i data-lucide="badge-check"></i></div>
+        <div style="font-size: 11px; color: #8e94a8;">REGISTERED EMAIL / ID</div>
+        <div id="user-email" style="font-weight: bold; margin-top: 5px; color: var(--primary);">Loading...</div>
+        <div id="verify-box">
+            <button id="biometric-btn" class="btn" style="font-size: 14px; padding: 10px; margin-top: 15px; width: 100%;" onclick="verifyFingerprint()">VERIFY IDENTITY</button>
+        </div>
     </div>
+
     <div class="card">
-        <div style="font-size: 12px; color: #8e94a8; margin-bottom: 5px;">REFERRAL LINK</div>
-        <input type="text" id="ref-link" readonly style="width:100%; padding:12px; background:#0b0f1a; border:1px solid #2d334a; color:var(--primary); border-radius:10px; box-sizing: border-box; font-size: 12px;">
-        <button class="btn" onclick="copyRef()" style="font-size: 14px; padding: 10px; margin-top: 10px;">COPY LINK</button>
+        <div style="font-size: 11px; color: #8e94a8;">REFERRAL NODE LINK</div>
+        <input type="text" id="ref-link" readonly style="width:100%; padding:12px; background:#0b0f1a; border:1px solid #2d334a; color:var(--primary); border-radius:10px; box-sizing: border-box; font-size: 12px; margin-top: 10px;">
+        <button class="btn" onclick="copyRef()" style="font-size: 14px; padding: 10px; margin-top: 10px; width: 100%;">COPY LINK</button>
     </div>
 </div>
 
@@ -87,8 +101,7 @@ async function startAppWithAd() {
 }
 
 function toggleProfile() {
-    const ov = document.getElementById('profile-overlay');
-    ov.classList.toggle('active');
+    document.getElementById('profile-overlay').classList.toggle('active');
 }
 
 function updateUI() {
@@ -97,7 +110,7 @@ function updateUI() {
     
     balEl.innerText = Math.floor(userData.totalBalance).toLocaleString();
 
-    // Timer Logic
+    // Timer Logic (4-Hour UTC Cycles)
     const now = new Date();
     const currentCycleHour = Math.floor(now.getUTCHours() / 4) * 4;
     const currentCycleStart = new Date(now).setUTCHours(currentCycleHour, 0, 0, 0);
@@ -109,17 +122,19 @@ function updateUI() {
         const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
         const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
         const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-        btnEl.innerText = `${h}:${m}:${s}`;
+        btnEl.innerText = `NEXT MINING IN ${h}:${m}:${s}`;
     } else {
         btnEl.disabled = false;
-        btnEl.innerText = `MINE ${totalRate}`;
+        btnEl.innerText = `MINE ${totalRate} $SEN`;
     }
 
-    // Profile Details
+    // Profile Data
+    const user = tg.initDataUnsafe.user;
+    document.getElementById('user-email').innerText = user ? (user.username || user.id) : userData.id;
     document.getElementById('ref-link').value = `https://t.me/YourBotUsername?start=${userData.id}`;
+    
     if(userData.isVerified) {
-        document.getElementById('verify-status').innerText = "VERIFIED NODE";
-        document.getElementById('verify-status').style.color = "var(--safe)";
+        document.getElementById('check-mark').style.display = "block";
         document.getElementById('biometric-btn').style.display = "none";
     }
 }
@@ -127,8 +142,13 @@ function updateUI() {
 async function verifyFingerprint() {
     const biometry = tg.BiometricManager;
     if (!biometry.isInited) { biometry.init(() => verifyFingerprint()); return; }
-    biometry.authenticate({ reason: "Secure Node" }, (success) => {
-        if (success) { userData.isVerified = true; saveData(); updateUI(); }
+    biometry.authenticate({ reason: "Verify Sentinel Node" }, (success) => {
+        if (success) { 
+            userData.isVerified = true; 
+            saveData(); 
+            updateUI(); 
+            tg.showAlert("Node Verified Successfully!");
+        }
     });
 }
 
